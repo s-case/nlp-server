@@ -104,7 +104,7 @@ If the input format is not correct (e.g. the request is not in json), then the s
             The request sent by the client was syntactically incorrect.
 
 Finally, if the format of the input is correct, yet the input itself is erroneous (e.g. a misspelled json key),
-then the server returns a Response 400
+then the server returns a Response 422
 
 + Response 422 (text/plain)
    + Headers
@@ -185,7 +185,7 @@ If the input format is not correct (e.g. the request is not in json), then the s
             The request sent by the client was syntactically incorrect.
 
 Finally, if the format of the input is correct, yet the input itself is erroneous (e.g. a misspelled json key),
-then the server returns a Response 400
+then the server returns a Response 422
 
 + Response 422 (text/plain)
    + Headers
@@ -278,7 +278,7 @@ If the input format is not correct (e.g. the request is not in json), then the s
             The request sent by the client was syntactically incorrect.
 
 Finally, if the format of the input is correct, yet the input itself is erroneous (e.g. a misspelled json key),
-then the server returns a Response 400
+then the server returns a Response 422
 
 + Response 422 (text/plain)
    + Headers
@@ -293,3 +293,82 @@ then the server returns a Response 400
    + Body
 
             JSONObject["..."] not found.
+
+# Question [/nlpserver/question]
+An endpoint for extracting query terms from an English sentence, which may 
+be in the form of a question.
+
+Extraction requires sending a POST request including the question to be
+processed and receiving a full response containing the following attributes: 
+
+- created_at
+- question
+- query_terms
+
+## Extracting query terms from a question [POST]
+
+Using the NLP server for a question requires posting the following request:
+
++ Request (application/json)
+
+        {
+            "question": "..."
+        }
+
+If the request is correct the server should return a Response 200
+
++ Response 200 (application/json)
+   + Headers
+   
+            {
+               "transfer-encoding": "chunked",
+               "date": "...",
+               "content-type": "application/json",
+               "server": "..."
+            }
+
+   + Body
+
+            {
+               "created_at": "2014-11-06T13:44Z",
+               "question": "...",
+               "query_terms": "..."
+            }
+
+If the input format is not correct (e.g. the request is not in json), then the server returns a Response 400
+
++ Response 400 (text/html)
+   + Headers
+
+            {
+               "content-length": "...",
+               "content-language": "en",
+               "server": "...",
+               "connection": "close",
+               "date": "...",
+               "content-type": "text/html;charset=utf-8"
+            }
+
+   + Body
+
+            (HTML formatted error)
+            HTTP Status 400 - Bad Request
+            The request sent by the client was syntactically incorrect.
+
+Finally, if the format of the input is correct, yet the input itself is erroneous (e.g. a misspelled json key),
+then the server returns a Response 422
+
++ Response 422 (text/plain)
+   + Headers
+
+            {
+               "transfer-encoding": "chunked",
+               "date": "...",
+               "content-type": "text/plain",
+               "server": "..."
+            }
+
+   + Body
+
+            JSONObject["..."] not found.
+

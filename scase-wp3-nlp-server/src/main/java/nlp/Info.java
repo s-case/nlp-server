@@ -35,6 +35,7 @@ public class Info {
 			links.put("phrase", "http://localhost:8010/nlpserver/phrase");
 			links.put("sentence", "http://localhost:8010/nlpserver/sentence");
 			links.put("project", "http://localhost:8010/nlpserver/project");
+			links.put("question", "http://localhost:8010/nlpserver/question");
 			jsonResponse.put("_links", links);
 		} catch (JSONException e) {
 			e.printStackTrace();
