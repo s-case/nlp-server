@@ -23,18 +23,14 @@ public class AuthFilter implements ContainerRequestFilter {
 	 * 
 	 * @param containerRequest the request to be filtered.
 	 * @return the {@code containerRequest} if the credentials are correct, else an exception is thrown.
-	 * @throws WebApplicationException when the credentials are not correct (HTTP code 401 Unauthorized) or when the
-	 *             credentials file is unreachable (HTTP Code 500 Internal Server Error).
+	 * @throws WebApplicationException when the credentials are not correct (HTTP code 401 Unauthorized).
 	 */
 	@Override
 	public ContainerRequest filter(ContainerRequest containerRequest) throws WebApplicationException {
 		// String method = containerRequest.getMethod();
 		String path = containerRequest.getPath();
 
-		if (path.equals("")) {
-			return containerRequest;
-		}
-		else if (path.equals("phrase")) {
+		if (path.equals("testauthentication")) {
 			// Get the authentification passed in HTTP headers parameters
 			String auth = containerRequest.getHeaderValue("authorization");
 			if (auth == null)
@@ -63,12 +59,10 @@ public class AuthFilter implements ContainerRequestFilter {
 			// Continue if the credentials are correct
 			if (map.containsKey(username) && map.get(username).equals(password)) {
 				return containerRequest;
-			}
-			else
+			} else
 				throw new WebApplicationException(Response.status(401).entity("Wrong username and/or password!")
 						.type("text/plain").build());
-		}
-		else {
+		} else {
 			return containerRequest;
 		}
 	}
