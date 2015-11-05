@@ -193,11 +193,13 @@ public class StaticPipeline
 
 	try
 	{
+	    System.err.println("Parsing question: " + question);
+
 	    Sentence s = pipeline.parse(question);
 
 	    for(Word w : s)
 	    {
-//		System.err.println("Word: " + w.getForm() + " " + w.getPOS());
+		System.err.println("Word: " + w.getForm() + " " + w.getPOS() + " " + w.getLemma());
 		if(w.getPOS().startsWith("NN"))
 		    terms.put(w.getLemma());
 	    }
