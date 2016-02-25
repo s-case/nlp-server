@@ -174,7 +174,7 @@ public class WordEmbedding
 
     private static void printExamples(String[] examples, WordEmbedding c)
     {
-        System.out.printf("%12s | %12s | %12s%n", "Form", "Dim 0", "Dim 1");
+        System.out.printf("%12s | %12s | %12s\n", "Form", "Dim 0", "Dim 1");
         for (String e : examples) {
             EmbeddingEntry ce = c.map.get(e);
             Object[] o;
@@ -182,7 +182,7 @@ public class WordEmbedding
                 o = new Object[] { e, "null", "null" };
             else
                 o = new Object[] { e, new Double(ce.entry[0]), new Double(ce.entry[1]) };
-            System.out.printf("%-12s | %12s | %12s%n", o);
+            System.out.printf("%-12s | %12s | %12s\n", o);
         }
         System.out.println();
     }

@@ -123,7 +123,7 @@ public class Sentence
                 Predicate pred = predicates.get(j);
                 ret.append((tag = pred.getArgumentTag(w)) != null ? tag : "_");
             }
-            ret.append("%n");
+            ret.append("\n");
         }
         return ret.toString().trim();
     }
@@ -142,7 +142,7 @@ public class Sentence
                 Predicate pred = predicates.get(j);
                 ret.append((tag = pred.getArgumentTag(w)) != null ? tag : "_");
             }
-            ret.append("%n");
+            ret.append("\n");
         }
         return ret.toString().trim();
     }

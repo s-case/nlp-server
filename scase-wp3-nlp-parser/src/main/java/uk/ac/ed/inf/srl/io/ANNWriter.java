@@ -31,7 +31,7 @@ public class ANNWriter
         try {
             out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), Charset.forName("UTF-8")));
         } catch (Exception e) {
-            System.out.println("Failed while opening writer...%n" + e.toString());
+            System.out.println("Failed while opening writer...\n" + e.toString());
             System.exit(1);
         }
     }
@@ -42,20 +42,20 @@ public class ANNWriter
             for (Predicate p : s.getPredicates()) {
                 if (p.getSense().equals("Action") || p.getSense().equals("OPERATION")) {
                     out.write(id(p) + "\t" + "Action" + " " + p.getBegin() + " " + p.getEnd() + "\t" + p.getForm()
-                            + "%n");
+                            + "\n");
 
                     for (Word w : p.getArgMap().keySet()) {
                         String label = p.getArgMap().get(w);
 
                         if (!word2id.containsKey(w))
                             out.write(id(w) + "\t" + label + " " + w.getBegin() + " " + w.getEnd() + "\t" + w.getForm()
-                                    + "%n");
+                                    + "\n");
 
                         out.write("R"
                                 + (rnum++)
                                 + "\t"
                                 + (label.equals("Actor") ? ("IsActorOf Arg1:" + id(w) + " Arg2:" + id(p))
-                                        : ("ActsOn Arg1:" + id(p) + " Arg2:" + id(w))) + "%n");
+                                        : ("ActsOn Arg1:" + id(p) + " Arg2:" + id(w))) + "\n");
                     }
                 }
 
@@ -68,13 +68,13 @@ public class ANNWriter
 
                         if (!word2id.containsKey(w))
                             out.write(id(w) + "\t" + label + " " + w.getBegin() + " " + w.getEnd() + "\t" + w.getForm()
-                                    + "%n");
+                                    + "\n");
 
-                        out.write("R" + (rnum++) + "\t" + "HasProperty Arg1:" + id(p) + " Arg2:" + id(w) + "%n");
+                        out.write("R" + (rnum++) + "\t" + "HasProperty Arg1:" + id(p) + " Arg2:" + id(w) + "\n");
                     }
                 }
             }
-            // out.write(s.toString()+"%n%n");
+            // out.write(s.toString()+"\n\n");
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Failed to write sentance.");

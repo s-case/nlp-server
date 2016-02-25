@@ -18,7 +18,7 @@ public abstract class AbstractCoNLL09Reader
         implements SentenceReader
 {
 
-    protected static final Pattern NEWLINE_PATTERN = Pattern.compile("%n");
+    protected static final Pattern NEWLINE_PATTERN = Pattern.compile("\n");
 
     protected BufferedReader in;
     protected Sentence nextSen;

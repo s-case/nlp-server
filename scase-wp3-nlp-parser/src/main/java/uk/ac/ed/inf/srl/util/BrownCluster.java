@@ -178,7 +178,7 @@ public class BrownCluster
 
     private static void printExamples(String[] examples, BrownCluster c)
     {
-        System.out.printf("%12s | %12s | %12s%n", "Form", "Short", "Long");
+        System.out.printf("%12s | %12s | %12s\n", "Form", "Short", "Long");
         for (String e : examples) {
             ClusterEntry ce = c.map.get(e);
             Object[] o;
@@ -186,7 +186,7 @@ public class BrownCluster
                 o = new Object[] { e, "null", "null" };
             else
                 o = new Object[] { e, new Integer(ce.s), new Integer(ce.l) };
-            System.out.printf("%-12s | %12s | %12s%n", o);
+            System.out.printf("%-12s | %12s | %12s\n", o);
         }
         System.out.println();
     }

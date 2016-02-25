@@ -29,7 +29,7 @@ public class RDFWriter
             out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), Charset.forName("UTF-8")));
             // out = new BufferedWriter(new FileWriter(filename));
         } catch (Exception e) {
-            System.out.println("Failed while opening writer...%n" + e.toString());
+            System.out.println("Failed while opening writer...\n" + e.toString());
             System.exit(1);
         }
     }
@@ -40,7 +40,7 @@ public class RDFWriter
             rdf = new RDF();
             SentenceRDF rdfs = new SentenceRDF(rdf, semlink, s, new Integer(++snum).toString());
             rdf.write(out);
-            // out.write(s.toString()+"%n%n");
+            // out.write(s.toString()+"\n\n");
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Failed to write sentance.");
