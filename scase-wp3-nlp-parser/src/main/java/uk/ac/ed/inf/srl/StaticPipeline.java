@@ -5,6 +5,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
+import uk.ac.ed.inf.srl.ExperimentalParser;
+import uk.ac.ed.inf.srl.ExperimentalParser.*;
+
 import uk.ac.ed.inf.srl.corpus.Predicate;
 import uk.ac.ed.inf.srl.corpus.Sentence;
 import uk.ac.ed.inf.srl.corpus.Word;
@@ -70,6 +73,10 @@ public class StaticPipeline
 
 	public static JSONArray parseSentenceANN(String string) {
 		return parse2ANN(string);
+	}
+	
+	public static JSONArray parseSentenceANN2(String string) {
+		return parse2ANN2(string);
 	}
 	
 	public static JSONObject parseSentenceTTL(String sen) {
@@ -176,6 +183,62 @@ public class StaticPipeline
 	            }
 			 
 			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		JSONArray retval = new JSONArray();
+		for(String key : id2anno.keySet()) {
+			retval.put(key + " " + id2anno.get(key));
+		}
+		return retval;
+	}
+
+	public static JSONArray parse2ANN2(String sen) {
+		Map<String, String> id2anno = new TreeMap<String, String>();
+		
+		try {
+			Sentence s = pipeline.parse(sen);
+			ExperimentalParser ep = new ExperimentalParser(s);
+
+			for(Action a : ep.actions)
+			{
+			    id2anno.put(id(a.word),
+					"Action " + a.word.getBegin() + " " + a.word.getEnd() +
+					" " + a.word.getForm());
+			    for(Actor aa : a.actors)
+				id2anno.put("R" + (rnum++),
+					    "IsActorOf Arg1:" + id(aa.word) + " Arg2:" + id(a.word));
+			    for(Obj aa : a.objects)
+				id2anno.put("R" + (rnum++),
+					    "ActsOn Arg1:" + id(a.word) + " Arg2:" + id(aa.word));
+			}
+			
+			for(Actor a : ep.actors.values())
+			{
+			    id2anno.put(id(a.word),
+					"Actor " + a.word.getBegin() + " " + a.word.getEnd() +
+					" " + a.word.getForm());
+			    for(uk.ac.ed.inf.srl.ExperimentalParser.Property aa : a.properties)
+				id2anno.put("R" + (rnum++),
+					    "HasProperty Arg1:" + id(a.word) + " Arg2:" + id(aa.word));
+			}
+			
+			for(Obj a : ep.objects.values())
+			{
+			    id2anno.put(id(a.word),
+					"Object " + a.word.getBegin() + " " + a.word.getEnd() +
+					" " + a.word.getForm());
+			    for(uk.ac.ed.inf.srl.ExperimentalParser.Property aa : a.properties)
+				id2anno.put("R" + (rnum++),
+					    "HasProperty Arg1:" + id(a.word) + " Arg2:" + id(aa.word));
+			}
+
+			for(uk.ac.ed.inf.srl.ExperimentalParser.Property a : ep.properties.values())
+			    id2anno.put(id(a.word),
+					"Property " + a.word.getBegin() + " " + a.word.getEnd() +
+					" " + a.word.getForm());
+			 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
