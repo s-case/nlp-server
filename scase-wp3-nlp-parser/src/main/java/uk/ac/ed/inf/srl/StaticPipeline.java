@@ -194,6 +194,18 @@ public class StaticPipeline
 		return retval;
 	}
 
+        public static String bratWordSummary(Word w, ExperimentalParser ep, String sen)
+        {
+	    Word comp = ep.compoundNouns.get(w);
+	    if(comp != null)
+	    {
+		return comp.getBegin() + " " + comp.getEnd() + " " +
+		    sen.substring(comp.getBegin(), comp.getEnd());
+	    }
+	    else
+		return w.getBegin() + " " + w.getEnd() + " " + w.getForm();
+	}
+    
 	public static JSONArray parse2ANN2(String sen) {
 		Map<String, String> id2anno = new TreeMap<String, String>();
 		
@@ -204,8 +216,7 @@ public class StaticPipeline
 			for(Action a : ep.actions)
 			{
 			    id2anno.put(id(a.word),
-					"Action " + a.word.getBegin() + " " + a.word.getEnd() +
-					" " + a.word.getForm());
+					"Action " + bratWordSummary(a.word, ep, sen));
 			    for(Actor aa : a.actors)
 				id2anno.put("R" + (rnum++),
 					    "IsActorOf Arg1:" + id(aa.word) + " Arg2:" + id(a.word));
@@ -217,8 +228,7 @@ public class StaticPipeline
 			for(Actor a : ep.actors.values())
 			{
 			    id2anno.put(id(a.word),
-					"Actor " + a.word.getBegin() + " " + a.word.getEnd() +
-					" " + a.word.getForm());
+					"Actor " + bratWordSummary(a.word, ep, sen));
 			    for(uk.ac.ed.inf.srl.ExperimentalParser.Property aa : a.properties)
 				id2anno.put("R" + (rnum++),
 					    "HasProperty Arg1:" + id(a.word) + " Arg2:" + id(aa.word));
@@ -227,8 +237,8 @@ public class StaticPipeline
 			for(Obj a : ep.objects.values())
 			{
 			    id2anno.put(id(a.word),
-					"Object " + a.word.getBegin() + " " + a.word.getEnd() +
-					" " + a.word.getForm());
+					"Object " + bratWordSummary(a.word, ep, sen));
+
 			    for(uk.ac.ed.inf.srl.ExperimentalParser.Property aa : a.properties)
 				id2anno.put("R" + (rnum++),
 					    "HasProperty Arg1:" + id(a.word) + " Arg2:" + id(aa.word));
@@ -236,9 +246,7 @@ public class StaticPipeline
 
 			for(uk.ac.ed.inf.srl.ExperimentalParser.Property a : ep.properties.values())
 			    id2anno.put(id(a.word),
-					"Property " + a.word.getBegin() + " " + a.word.getEnd() +
-					" " + a.word.getForm());
-			 
+					"Property " + bratWordSummary(a.word, ep, sen));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

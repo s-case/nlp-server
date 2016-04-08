@@ -42,6 +42,9 @@ public class Project {
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
 		dateFormat.setTimeZone(timeZone);
 		String currentTimeISO8601 = dateFormat.format(new Date());
+		int version=2;	// latest version is default
+
+		System.err.println("Project request " + request);
 
 		if (!request.has("project_name"))
 			throw new WebApplicationException(Response.status(422).entity("Please include a \"project_name\" JSON key")
@@ -52,6 +55,21 @@ public class Project {
 		else if (!request.has("annotation_format"))
 			throw new WebApplicationException(Response.status(422)
 					.entity("Please include an \"annotation_format\" JSON key").type("text/plain").build());
+		if (request.has("parser_version"))
+		{
+		    try
+		    {
+			version = request.getInt("parser_version");
+		    }
+		    catch(Exception e)
+		    {
+			throw new WebApplicationException(Response.status(422)
+				      .entity("\"parser version\" must be an integer").type("text/plain").build());
+		    }
+		    if(version < 1 || version > 2)
+			throw new WebApplicationException(Response.status(422)
+				       .entity("\"parser version\" must be 1 or 2").type("text/plain").build());
+		}
 
 		JSONObject jsonResponse = null;
 		try {
@@ -82,7 +100,10 @@ public class Project {
 				} else {
 					JSONObject curr = new JSONObject();
 					curr.put("id", o.get("id").toString());
-					curr.put("annotation",  StaticPipeline.parseSentenceANN(o.get("text").toString()));
+					if(version == 1)
+					    curr.put("annotation",  StaticPipeline.parseSentenceANN(o.get("text").toString()));
+					else
+					    curr.put("annotation",  StaticPipeline.parseSentenceANN2(o.get("text").toString()));
 					((JSONArray)annotation).put(curr);
 					StaticPipeline.clear();
 				}

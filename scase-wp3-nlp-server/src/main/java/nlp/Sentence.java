@@ -38,13 +38,32 @@ public class Sentence {
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
 		dateFormat.setTimeZone(timeZone);
 		String currentTimeISO8601 = dateFormat.format(new Date());
+		int version = 2;
 
+		System.err.println("Sentence request " + request);
+		
 		if (!request.has("sentence"))
 			throw new WebApplicationException(Response.status(422).entity("Please include a \"sentence\" JSON key")
 					.type("text/plain").build());
 		else if (!request.has("annotation_format"))
 			throw new WebApplicationException(Response.status(422)
 					.entity("Please include an \"annotation_format\" JSON key").type("text/plain").build());
+		if (request.has("parser_version"))
+		{
+		    try
+		    {
+			version = request.getInt("parser_version");
+		    }
+		    catch(Exception e)
+		    {
+			throw new WebApplicationException(Response.status(422)
+				      .entity("\"parser version\" must be an integer").type("text/plain").build());
+		    }
+		    if(version < 1 || version > 2)
+			throw new WebApplicationException(Response.status(422)
+				       .entity("\"parser version\" must be 1 or 2").type("text/plain").build());
+		}
+
 
 		JSONObject jsonResponse = null;
 		try {
@@ -53,11 +72,17 @@ public class Sentence {
 						.entity("\"annotation_format\" must be either \"ann\" or \"ttl\"").type("text/plain").build());
 			}
 			StaticPipeline.clear();
-		
-			Object annotation = 
-					request.get("annotation_format").equals("ttl")?
-							StaticPipeline.parseSentenceTTL(request.get("sentence").toString()):
-								StaticPipeline.parseSentenceANN(request.get("sentence").toString());			
+
+			Object annotation;
+			if(request.get("annotation_format").equals("ttl"))
+			    annotation = StaticPipeline.parseSentenceTTL(request.get("sentence").toString());
+			else
+			{
+			    if(version == 1)
+				annotation = StaticPipeline.parseSentenceANN(request.get("sentence").toString());
+			    else
+				annotation = StaticPipeline.parseSentenceANN2(request.get("sentence").toString());
+			}
 
 			jsonResponse = new JSONObject();
 			jsonResponse.put("created_at", currentTimeISO8601);

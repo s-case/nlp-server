@@ -42,6 +42,8 @@ public class Question {
 		dateFormat.setTimeZone(timeZone);
 		String currentTimeISO8601 = dateFormat.format(new Date());
 
+		System.err.println("Question request " + request);
+
 		if (!request.has("question"))
 			throw new WebApplicationException(Response.status(422).entity("Please include a \"question\" JSON key")
 					.type("text/plain").build());

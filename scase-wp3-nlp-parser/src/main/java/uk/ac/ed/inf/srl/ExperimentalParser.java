@@ -28,16 +28,19 @@ public class ExperimentalParser
     Hashtable<Word, Obj> objects = new Hashtable<Word, Obj>();
     Hashtable<Word, Property> properties = new Hashtable<Word, Property>();
     Hashtable<Word, HashSet<Word>> conjunctions = new Hashtable<Word, HashSet<Word>>();
+    Hashtable<Word, Word> compoundNouns = new Hashtable<Word, Word>();
     
     public ExperimentalParser(Sentence s)
     {
 	sentence = s;
 
-//	printDependencies(System.err);
+	printDependencies(System.err);
 	
 	Set<Word> roots = s.get(0).getChildren();
 	assert roots.size() == 1;
 
+	findCompoundNouns();
+	
 	findConjunctions();
 	
 	// XXX is there a better way to get the known single element?
@@ -67,6 +70,79 @@ public class ExperimentalParser
 	System.err.println("actions are " + actions);
     }
 
+    // Find compound nouns such as "CPU power" and "Virtual Machine"
+
+    void findCompoundNouns()
+    {
+	int i, j, k;
+
+	// work backwards through the sentence so we don't treat a modifier
+	// as the potential base of a compound noun
+
+	for(i=sentence.size()-1; i>=0; --i)
+	{
+	    // the base must be a noun
+	    
+	    Word base = sentence.get(i);
+	    if(!base.getPOS().startsWith("NN"))
+		continue;
+
+	    // look at preceeding words to see if they form a compound
+	    // noun with the base
+	    
+	    for(j=i-1; j >= 0 && isCompoundNoun(sentence.get(j), base); --j)
+		;
+	    j++;
+
+	    // if we found a compound noun, make a fake word object for it
+	    
+	    if(j < i)
+	    {
+		StringBuffer buf = new StringBuffer();
+		for(k=j; k<i; k++)
+		{
+		    buf.append(sentence.get(k).getForm());
+		    buf.append(" "); // XXX whitespace may be wrong
+		}
+		buf.append(sentence.get(i).getForm());
+		Word compound = new Word(buf.toString(), null, null, null, null, 0);
+		compound.setBegin(sentence.get(j).getBegin());
+		compound.setEnd(base.getEnd());
+		for(k=j; k<=i; k++)
+		    compoundNouns.put(sentence.get(k), compound);
+		System.err.println("compound " + compound.getForm());
+	    }
+
+	    i = j;		// skip over the words we've consumed
+	}
+    }
+
+    boolean isCompoundNoun(Word mod, Word base)
+    {
+	// noun modifying noun is compound
+
+	if(mod.getPOS().startsWith("NN") && mod.getDeprel().equals("NMOD"))
+	    return true;
+
+	// name relation is compound
+	
+	if(mod.getDeprel().equals("NAME"))
+	    return true;
+
+	// various known modifiers
+
+//	System.err.println("considering " + mod.getForm() + " " + mod.getDeprel() + " " + base.getForm());
+	
+	if(mod.getDeprel().equals("NMOD"))
+	{
+	    if(mod.getForm().equalsIgnoreCase("virtual"))
+		return true;
+	}
+
+	return false;
+    }
+	   
+    
     // Find conjunctions and group conjuncts in sets
     
     void findConjunctions()
@@ -232,6 +308,9 @@ public class ExperimentalParser
 		{
 		    if(w.getPOS().equals("DT"))
 			;
+		    if(compoundNouns.get(w) != null)
+			// it's a compound nound, not a property
+			;
 		    else if(w.getPOS().startsWith("JJ") || w.getPOS().startsWith("NN") ||
 			    w.getPOS().equals("VBG"))
 		    {
@@ -317,7 +396,7 @@ public class ExperimentalParser
 	return matches;
     }
 
-    static class Action
+    class Action
     {
 	Word word, modal;
 	ArrayList<Word> ancestorVerbs;
@@ -389,7 +468,7 @@ public class ExperimentalParser
 	return t;
     }
     
-    static abstract class Thing
+    abstract class Thing
     {
 	Word word;
 	HashSet<Property> properties = new HashSet<Property>();
@@ -401,12 +480,15 @@ public class ExperimentalParser
 
 	public String toString()
 	{
-	    return word.getForm() + (word.getPOS().equals("PRP") ? "*" : "") +
+	    Word comp = compoundNouns.get(word);
+	    String form = (comp == null ? word.getForm() : "{" + comp.getForm() + "}");
+	    
+	    return form + (word.getPOS().equals("PRP") ? "*" : "") +
 		"-" + properties;
 	}
     }
 
-    static class Obj extends Thing
+    class Obj extends Thing
     {
 	Obj(Word word)
 	{
@@ -414,7 +496,7 @@ public class ExperimentalParser
 	}
     }
 
-    static class Property extends Thing
+    class Property extends Thing
     {
 	Property(Word word)
 	{
@@ -423,11 +505,14 @@ public class ExperimentalParser
 
 	public String toString()
 	{
-	    return word.getForm();
+	    Word comp = compoundNouns.get(word);
+	    String form = (comp == null ? word.getForm() : "{" + comp.getForm() + "}");
+	    
+	    return form;
 	}
     }
 
-    static class Actor extends Thing
+    class Actor extends Thing
     {
 	Actor(Word word)
 	{
