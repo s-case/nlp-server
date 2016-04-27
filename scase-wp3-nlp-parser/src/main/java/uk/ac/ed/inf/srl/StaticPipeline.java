@@ -258,6 +258,9 @@ public class StaticPipeline
 		return retval;
 	}
 
+
+    // Simple query term extraction: use the nouns
+    
     public static JSONArray findQueryTerms(String question)
     {
 	JSONArray terms = new JSONArray();
@@ -283,7 +286,51 @@ public class StaticPipeline
 	    return terms;
 	}
     }
+
+    // Find query terms using annotated sentence
+
+    public static JSONArray findQueryTerms2(String question)
+    {
+	JSONArray terms = new JSONArray();
+
+	try
+	{
+	    Sentence s = pipeline.parse(question);
+	    ExperimentalParser ep = new ExperimentalParser(s, true);
+
+	    for(Action a : ep.actions)
+		terms.put(wordText(a.word, ep, question));
+
+	    for(Actor a : ep.actors.values())
+		terms.put(wordText(a.word, ep, question));
+			
+	    for(Obj a : ep.objects.values())
+		terms.put(wordText(a.word, ep, question));
+
+	    for(uk.ac.ed.inf.srl.ExperimentalParser.Property a : ep.properties.values())
+		terms.put(wordText(a.word, ep, question));
+
+	    return terms;
+	} 
+	catch(Exception e)
+	{
+	    e.printStackTrace();
+	    return terms;
+	}
+    }
+
+    // Return text of word, allowing for compound words
+    
+    public static String wordText(Word w, ExperimentalParser ep, String sen)
+    {
+	Word comp = ep.compoundNouns.get(w);
 	
+	if(comp != null)
+	    return sen.substring(comp.getBegin(), comp.getEnd());
+	else
+	    return w.getForm();
+    }
+
     private static String id(Word w)
     {
         if (!word2id.containsKey(w))

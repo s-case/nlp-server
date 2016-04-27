@@ -41,6 +41,7 @@ public class Question {
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
 		dateFormat.setTimeZone(timeZone);
 		String currentTimeISO8601 = dateFormat.format(new Date());
+		int version = 2;
 
 		System.err.println("Question request " + request);
 
@@ -48,14 +49,30 @@ public class Question {
 			throw new WebApplicationException(Response.status(422).entity("Please include a \"question\" JSON key")
 					.type("text/plain").build());
 
+		if (request.has("parser_version"))
+		{
+		    try
+		    {
+			version = request.getInt("parser_version");
+		    }
+		    catch(Exception e)
+		    {
+			throw new WebApplicationException(Response.status(422)
+				      .entity("\"parser version\" must be an integer").type("text/plain").build());
+		    }
+		    if(version < 1 || version > 2)
+			throw new WebApplicationException(Response.status(422)
+				       .entity("\"parser version\" must be 1 or 2").type("text/plain").build());
+		}
+
 		JSONObject jsonResponse = null;
 		try {
 			StaticPipeline.clear();
-//			String[] strings = {"some", "terms"};
-			Object query_terms = 
-			    StaticPipeline.findQueryTerms(request.get("question").toString());
-//			    new JSONArray(Arrays.asList(strings));
-
+			Object query_terms;
+			if(version == 1)
+			    query_terms = StaticPipeline.findQueryTerms(request.get("question").toString());
+			else
+			    query_terms = StaticPipeline.findQueryTerms2(request.get("question").toString());
 			jsonResponse = new JSONObject();
 			jsonResponse.put("created_at", currentTimeISO8601);
 			jsonResponse.put("question", request.get("question"));

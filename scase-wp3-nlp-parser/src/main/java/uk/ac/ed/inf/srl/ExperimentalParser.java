@@ -32,6 +32,11 @@ public class ExperimentalParser
     
     public ExperimentalParser(Sentence s)
     {
+	this(s, false);
+    }
+    
+    public ExperimentalParser(Sentence s, boolean is_question)
+    {
 	sentence = s;
 
 	printDependencies(System.err);
@@ -39,15 +44,18 @@ public class ExperimentalParser
 	Set<Word> roots = s.get(0).getChildren();
 	assert roots.size() == 1;
 
-	findCompoundNouns();
-	
-	findConjunctions();
-	
 	// XXX is there a better way to get the known single element?
 	for(Word r : roots)
 	    root = r;
 
 //	System.err.println("root is " + root);
+
+	if(is_question)
+	    skipImperatives();
+
+	findCompoundNouns();
+	
+	findConjunctions();
 	
 	findActions();
 
@@ -68,6 +76,34 @@ public class ExperimentalParser
 	}
 	
 	System.err.println("actions are " + actions);
+    }
+
+    // For questions, if the root seems to be an imperative like
+    // "find" or "show", replace it with a descendant verb if
+    // possible.  E.g. for "Find systems which can ..." use "can".
+
+    void skipImperatives()
+    {
+	// See if the root has a subject.  If it has, assume
+	// it's not an imperative.
+
+	for(Word w : sentence)
+	    if(w.getDeprel().equals("SBJ") && w.getHead() == root)
+		return;
+
+	// It seems to be an imperative, look for a descendant verb
+	
+	List<Word> verbs = findMatchingDescendants(root,
+						   new WordTest() {
+						       public boolean test(Word w) {
+							   return w.getPOS().equals("VB") ||
+							          w.getPOS().equals("MD");}});
+	if(verbs.size() >= 1)
+	{
+	    // XXX what if there are several?
+	    root = verbs.get(0);
+	    System.err.println("switching root to " + root.getForm());
+	}
     }
 
     // Find compound nouns such as "CPU power" and "Virtual Machine"
@@ -380,8 +416,10 @@ public class ExperimentalParser
 	// Get a list of all the children
 	
 	for(Word start : starts)
-	    for(Word c: start.getChildren())
+	{
+	    for(Word c : start.getChildren())
 		children.add(c);
+	}
 
 	// Add the matching ones
 	
