@@ -87,6 +87,9 @@ public class ExperimentalParser
 	// See if the root has a subject.  If it has, assume
 	// it's not an imperative.
 
+	// By happy coincidence, this will handle cases where the root
+	// is not a verb.  XXX maybe handle explicitly.
+
 	for(Word w : sentence)
 	    if(w.getDeprel().equals("SBJ") && w.getHead() == root)
 		return;
@@ -96,8 +99,8 @@ public class ExperimentalParser
 	List<Word> verbs = findMatchingDescendants(root,
 						   new WordTest() {
 						       public boolean test(Word w) {
-							   return w.getPOS().equals("VB") ||
-							          w.getPOS().equals("MD");}});
+							   return isActiveVerb(w) ||
+							       w.getPOS().equals("MD");}});
 	if(verbs.size() >= 1)
 	{
 	    // XXX what if there are several?
@@ -237,7 +240,7 @@ public class ExperimentalParser
     void findActions()
     {
 	// If the root is a plain verb it's the action.
-	// If it's a modal verb use its deepest plain verb descendant.
+	// If it's a modal verb or auxillary use its deepest plain verb descendant.
 	// Any conjuncts of the action are also actions.
 	
 	if(!(root.getPOS().startsWith("VB") || root.getPOS().equals("MD")))
@@ -248,9 +251,9 @@ public class ExperimentalParser
 
 	for(Word r : roots)
 	{
-	    if(r.getPOS().startsWith("VB"))
+	    if(r.getPOS().startsWith("VB") && !isAuxillary(r))
 		actions.add(new Action(r));
-	    else // MD
+	    else // MD or auxillary
 	    {
 		List<Word> verbs = findMatchingDescendants(root,
 							   new WordTest() {
@@ -272,6 +275,28 @@ public class ExperimentalParser
 	}
     }
 
+    boolean isAuxillary(Word w)
+    {
+	// Must be is/do/have and have a complement (VC)
+	
+	if(!w.getLemma().equals("be") &&
+	   !w.getLemma().equals("do") &&
+	   !w.getLemma().equals("have"))
+	    return false;
+
+	for(Word w2 : sentence)
+	    if(w2.getDeprel().equals("VC") && w2.getHead() == w)
+		return true;
+
+	return false;
+    }
+
+    boolean isActiveVerb(Word w)
+    {
+	return w.getPOS().equals("VB") || w.getPOS().equals("VBP") ||
+	    w.getPOS().equals("VBZ") || w.getPOS().equals("VBD");
+    }
+
     void findActors(Action action)
     {
 	Word verb = (action.modal == null ? action.word : action.modal);
@@ -279,7 +304,8 @@ public class ExperimentalParser
 
 	
 	for(Word w : sentence)
-	    if(w.getDeprel().equals("SBJ") && w.getHead() == verb)
+	    // XXX should we only accept nouns?
+	    if(w.getDeprel().equals("SBJ") && w.getHead() == verb && !w.getPOS().equals("WDT"))
 	    {
 		subject = w;
 		break;
@@ -340,7 +366,8 @@ public class ExperimentalParser
 	if(t != null)
 	{
 	    for(Word w : sentence)
-		if(w.getHead() == t.word && w.getDeprel().equals("NMOD"))
+		if(w.getHead() == t.word &&
+		   (w.getDeprel().equals("NMOD") || w.getDeprel().equals("APPO")))
 		{
 		    if(w.getPOS().equals("DT"))
 			;
