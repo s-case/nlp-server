@@ -240,7 +240,7 @@ public class ExperimentalParser
     void findActions()
     {
 	// If the root is a plain verb it's the action.
-	// If it's a modal verb or auxillary use its deepest plain verb descendant.
+	// If it's a modal verb or auxiliary use its deepest plain verb descendant.
 	// Any conjuncts of the action are also actions.
 	
 	if(!(root.getPOS().startsWith("VB") || root.getPOS().equals("MD")))
@@ -251,9 +251,9 @@ public class ExperimentalParser
 
 	for(Word r : roots)
 	{
-	    if(r.getPOS().startsWith("VB") && !isAuxillary(r))
+	    if(r.getPOS().startsWith("VB") && !isAuxiliary(r))
 		actions.add(new Action(r));
-	    else // MD or auxillary
+	    else // MD or auxiliary
 	    {
 		List<Word> verbs = findMatchingDescendants(root,
 							   new WordTest() {
@@ -275,7 +275,7 @@ public class ExperimentalParser
 	}
     }
 
-    boolean isAuxillary(Word w)
+    boolean isAuxiliary(Word w)
     {
 	// Must be is/do/have and have a complement (VC)
 	
