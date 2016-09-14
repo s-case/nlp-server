@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.HashSet;
 
 import uk.ac.ed.inf.srl.ExperimentalParser;
 import uk.ac.ed.inf.srl.ExperimentalParser.*;
@@ -289,6 +290,18 @@ public class StaticPipeline
 
     // Find query terms using annotated sentence
 
+    static HashSet actionstoplist = new HashSet();
+    static HashSet actorstoplist = new HashSet();
+    static
+    {
+	actionstoplist.add("be");
+	actionstoplist.add("have");
+	actionstoplist.add("do");
+
+	actorstoplist.add("you");
+	actorstoplist.add("i");
+    }
+
     public static JSONArray findQueryTerms2(String question)
     {
 	JSONArray terms = new JSONArray();
@@ -298,12 +311,36 @@ public class StaticPipeline
 	    Sentence s = pipeline.parse(question);
 	    ExperimentalParser ep = new ExperimentalParser(s, true);
 
-	    for(Action a : ep.actions)
-		terms.put(wordText(a.word, ep, question));
+	    if(ep.actions.size() == 0)
+	    {
+		System.err.println("falling back to nouns");
 
+		for(Word w : s)
+		{
+		    // Just find the nouns; ignore NMODs and NAMEs as they
+		    // will probably be parts of compound nouns
+		    if(w.getPOS().startsWith("NN") &&
+		       !w.getDeprel().equals("NMOD") && !w.getDeprel().equals("NAME"))
+			terms.put(wordText(w, ep, question));
+		}
+
+		return terms;
+	    }
+	    
 	    for(Actor a : ep.actors.values())
-		terms.put(wordText(a.word, ep, question));
+	    {
+		String text = wordText(a.word, ep, question);
+		if(!actorstoplist.contains(text))
+		    terms.put(text);
+	    }
 			
+	    for(Action a : ep.actions)
+	    {
+		String text = wordText(a.word, ep, question);
+		if(!actionstoplist.contains(text))
+		    terms.put(text);
+	    }
+
 	    for(Obj a : ep.objects.values())
 		terms.put(wordText(a.word, ep, question));
 
@@ -320,15 +357,16 @@ public class StaticPipeline
     }
 
     // Return text of word, allowing for compound words
+    // XXX change this to return lemmas
     
     public static String wordText(Word w, ExperimentalParser ep, String sen)
     {
 	Word comp = ep.compoundNouns.get(w);
 	
 	if(comp != null)
-	    return sen.substring(comp.getBegin(), comp.getEnd());
+	    return comp.getLemma();
 	else
-	    return w.getForm();
+	    return w.getLemma();
     }
 
     private static String id(Word w)

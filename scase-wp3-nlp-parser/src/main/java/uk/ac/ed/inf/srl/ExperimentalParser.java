@@ -84,15 +84,11 @@ public class ExperimentalParser
 
     void skipImperatives()
     {
-	// See if the root has a subject.  If it has, assume
-	// it's not an imperative.
-
 	// By happy coincidence, this will handle cases where the root
 	// is not a verb.  XXX maybe handle explicitly.
 
-	for(Word w : sentence)
-	    if(w.getDeprel().equals("SBJ") && w.getHead() == root)
-		return;
+	if(!isImperative(root))
+	    return;
 
 	// It seems to be an imperative, look for a descendant verb
 	
@@ -103,10 +99,28 @@ public class ExperimentalParser
 							       w.getPOS().equals("MD");}});
 	if(verbs.size() >= 1)
 	{
-	    // XXX what if there are several?
 	    root = verbs.get(0);
+	    
+	    // XXX Prefer non-imperatives.  We shouldn't need to do this but
+	    // the parser sometimes thinks an imperative like "List" is an NMOD.  
+
+	    for(Word verb : verbs)
+		if(!isImperative(verb))
+		    root = verb;
+	    
 	    System.err.println("switching root to " + root.getForm());
 	}
+    }
+
+    // See if a verb has a subject.  If it hasn't, assume it's an imperative.
+
+    boolean isImperative(Word verb)
+    {
+	for(Word w : sentence)
+	    if(w.getDeprel().equals("SBJ") && w.getHead() == verb)
+		return false;
+
+	return true;
     }
 
     // Find compound nouns such as "CPU power" and "Virtual Machine"
@@ -137,14 +151,22 @@ public class ExperimentalParser
 	    
 	    if(j < i)
 	    {
-		StringBuffer buf = new StringBuffer();
+		StringBuffer buf = new StringBuffer();	
+		StringBuffer lbuf = new StringBuffer();
+		
 		for(k=j; k<i; k++)
 		{
 		    buf.append(sentence.get(k).getForm());
 		    buf.append(" "); // XXX whitespace may be wrong
+		    // for lemma we lowercase
+		    lbuf.append(sentence.get(k).getForm().toLowerCase());
+		    lbuf.append(" ");
 		}
 		buf.append(sentence.get(i).getForm());
-		Word compound = new Word(buf.toString(), null, null, null, null, 0);
+		// for lemma we use lemma of last word
+		lbuf.append(sentence.get(i).getLemma());
+
+		Word compound = new Word(buf.toString(), lbuf.toString(), null, null, null, 0);
 		compound.setBegin(sentence.get(j).getBegin());
 		compound.setEnd(base.getEnd());
 		for(k=j; k<=i; k++)
@@ -302,14 +324,25 @@ public class ExperimentalParser
 	Word verb = (action.modal == null ? action.word : action.modal);
 	Word subject = null;
 
+	boolean has_wdt_subject = false;
 	
 	for(Word w : sentence)
 	    // XXX should we only accept nouns?
-	    if(w.getDeprel().equals("SBJ") && w.getHead() == verb && !w.getPOS().equals("WDT"))
+	    if(w.getPOS().equals("WDT"))
+	    {
+		has_wdt_subject = true;
+	    }
+	    else if(w.getDeprel().equals("SBJ") && w.getHead() == verb)
 	    {
 		subject = w;
 		break;
 	    }
+	
+	if(subject == null && has_wdt_subject && verb.getDeprel().equals("NMOD"))
+	{
+	    // handle cases like "systems which provide"
+	    subject = verb.getHead();
+	}
 	
 	if(subject == null)
 	    return;
@@ -330,10 +363,29 @@ public class ExperimentalParser
 		object = w;
 		break;
 	    }
+
+	if(object == null)
+	{
+	    // Look for OPRD which is used in constructions like "have to do with"
+	    
+	    for(Word w : sentence)
+		if(w.getDeprel().equals("OPRD") && w.getHead() == verb)
+		{
+		    List<Word> nouns = findMatchingDescendants(w,
+							       new WordTest() {
+								   public boolean test(Word w) {
+								       return w.getPOS().startsWith("NN");}});
+		    if(nouns.size() >= 1)
+		    {
+			object = nouns.get(0);
+			break;
+		    }
+		}
+	}
 	
 	if(object == null)
 	    return;
-	
+
 	for(Word o : conjunctions.get(object))
 	    action.objects.add(getObject(o));
     }
