@@ -300,6 +300,9 @@ public class StaticPipeline
 
 	actorstoplist.add("you");
 	actorstoplist.add("i");
+	actorstoplist.add("it");
+	actorstoplist.add("what");
+	actorstoplist.add("which");
     }
 
     public static JSONArray findQueryTerms2(String question)
@@ -312,20 +315,7 @@ public class StaticPipeline
 	    ExperimentalParser ep = new ExperimentalParser(s, true);
 
 	    if(ep.actions.size() == 0)
-	    {
-		System.err.println("falling back to nouns");
-
-		for(Word w : s)
-		{
-		    // Just find the nouns; ignore NMODs and NAMEs as they
-		    // will probably be parts of compound nouns
-		    if(w.getPOS().startsWith("NN") &&
-		       !w.getDeprel().equals("NMOD") && !w.getDeprel().equals("NAME"))
-			terms.put(wordText(w, ep, question));
-		}
-
-		return terms;
-	    }
+		return queryFallback(s, ep, question);
 	    
 	    for(Actor a : ep.actors.values())
 	    {
@@ -347,6 +337,9 @@ public class StaticPipeline
 	    for(uk.ac.ed.inf.srl.ExperimentalParser.Property a : ep.properties.values())
 		terms.put(wordText(a.word, ep, question));
 
+	    if(terms.length() == 0)
+		return queryFallback(s, ep, question);
+	    
 	    return terms;
 	} 
 	catch(Exception e)
@@ -354,6 +347,24 @@ public class StaticPipeline
 	    e.printStackTrace();
 	    return terms;
 	}
+    }
+
+    public static JSONArray queryFallback(Sentence s, ExperimentalParser ep, String question)
+    {
+	System.err.println("falling back to nouns");
+
+	JSONArray terms = new JSONArray();
+
+	for(Word w : s)
+	{
+	    // Just find the nouns; ignore NMODs and NAMEs as they
+	    // will probably be parts of compound nouns
+	    if(w.getPOS().startsWith("NN") &&
+	       !w.getDeprel().equals("NMOD") && !w.getDeprel().equals("NAME"))
+		terms.put(wordText(w, ep, question));
+	}
+
+	return terms;
     }
 
     // Return text of word, allowing for compound words
