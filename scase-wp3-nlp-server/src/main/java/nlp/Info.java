@@ -35,7 +35,6 @@ public class Info {
 			jsonResponse.put("module", "NLP Server");
 			jsonResponse.put("description", "NLP Server of the EU-funded project S-CASE. See http://www.scasefp7.eu/");
 			JSONObject links = new JSONObject();
-			links.put("phrase", base + "phrase");
 			links.put("sentence", base + "sentence");
 			links.put("project", base + "project");
 			links.put("question", base + "question");
