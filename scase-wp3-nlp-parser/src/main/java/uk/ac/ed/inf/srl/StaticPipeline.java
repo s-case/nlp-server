@@ -37,13 +37,15 @@ import com.hp.hpl.jena.rdf.model.StmtIterator;
 
 public class StaticPipeline
 {
+	private static String modelsDirectory = "../scase-wp3-nlp-parser/models/";
+
 	private static CompletePipelineCMDLineOptions options = new CompletePipelineCMDLineOptions(new String[]{
     		"eng",
     		"-tokenize",
-    		"-lemma", "../scase-wp3-nlp-parser/models/lemma-train-eng.model",
-    		"-tagger", "../scase-wp3-nlp-parser/models/tagger-train-eng.model",
-    		"-parser", "../scase-wp3-nlp-parser/models/parse-train-eng.model",
-    		"-srl", "../scase-wp3-nlp-parser/models/s-case.model",
+    		"-lemma", modelsDirectory + "lemma-train-eng.model",
+    		"-tagger", modelsDirectory + "tagger-train-eng.model",
+    		"-parser", modelsDirectory + "parse-train-eng.model",
+    		"-srl", modelsDirectory + "s-case.model",
     		"-printANN",
 	});
     private static CompletePipeline pipeline = getCompletePipeline(options);
