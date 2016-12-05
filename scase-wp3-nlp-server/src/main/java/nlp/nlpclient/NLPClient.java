@@ -91,15 +91,6 @@ public class NLPClient {
 		JSONObject initOutput = performJsonGetRequest(initAddress);
 		System.out.println(initOutput.toString(3).replaceAll("\\\\/", "/"));
 
-		// Perform a POST request on the phrase endpoint ("/phrase") of the server
-		String phraseAddress = "http://localhost:8010/nlpserver/phrase";
-		JSONObject phraseInput = new JSONObject();
-		phraseInput.put("phrase", "create bookmark");
-		phraseInput.put("annotation_format", "ann");
-		System.out.println("\nPOST " + phraseAddress);
-		JSONObject phraseOutput = performJsonPostRequest(phraseAddress, phraseInput, "user", "pass");
-		System.out.println(phraseOutput.toString(3).replaceAll("\\\\/", "/"));
-
 		// Perform a POST request on the sentence endpoint ("/sentence") of the server
 		String sentenceAddress = "http://localhost:8010/nlpserver/sentence";
 		JSONObject sentenceInput = new JSONObject();
