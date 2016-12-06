@@ -4,7 +4,7 @@ FORMAT: 1A
 Installation instructions for setting up the service in Ubuntu using java 8 and jetty 9.
 Note that one can also try the service in a development environment with maven using the command
 ```
-mvn jetty:run -Djetty.port=8080
+mvn jetty:run -Djetty.port=8010
 ```
 
 ### Install java using the following commands:
@@ -43,7 +43,7 @@ JAVA_HOME=/usr/lib/jvm/java-8-oracle/
 JAVA_OPTIONS="-Xmx4096m"
 JETTY_HOME=/opt/jetty
 NO_START=0
-JETTY_ARGS=jetty.port=8080
+JETTY_ARGS=jetty.port=8010
 JETTY_HOST=0.0.0.0
 JETTY_USER=jetty
 ```
@@ -58,4 +58,4 @@ Set models directory in file `nlp-server/scase-wp3-nlp-parser/src/main/java/uk/a
 (e.g. if downloaded in home folder is could be `/home/username/nlp-server/scase-wp3-nlp-parser/models/`)
 Build the service and copy the generated `nlpserver.war` file into `/opt/jetty/webapps`  
 Copy the models folder to the location set in the StaticPipeline file  
-Start the server and check that it works by going at `http://localhost:8080/nlpserver`
+Start the server and check that it works by going at `http://localhost:8010/nlpserver`
